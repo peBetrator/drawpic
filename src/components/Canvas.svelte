@@ -4,6 +4,9 @@
   import { currentStep, history } from '../stores/index';
   import type { StepCounterType } from '../stores/types';
 
+  export let strokeColor: string;
+  export let strokeWidth: number;
+
   const drawHandler = (): void => {
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D;
@@ -26,7 +29,7 @@
       context = canvas.getContext('2d');
 
       if ($history.length === 0) {
-        history.update(items => [...items, context.getImageData(0, 0, 500, 500)]);
+        history.update(() => [context.getImageData(0, 0, 500, 500)]);
       }
 
       // Attach the mousedown, mousemove and mouseup event listeners.
@@ -38,6 +41,9 @@
     const mousemove = (ev: MouseEvent) => {
       if (started) {
         context.lineTo(ev.clientX, ev.clientY);
+        context.strokeStyle = strokeColor;
+        context.lineWidth = strokeWidth;
+
         context.stroke();
       }
     };
@@ -53,7 +59,7 @@
         mousemove(ev);
         started = false;
 
-        history.update(items => {
+        history.update((items: ImageData[]) => {
           return [...items.slice(0, $currentStep.current + 1), context.getImageData(0, 0, 500, 500)];
         });
         currentStep.increment();
@@ -71,12 +77,13 @@
   // onDestroy(unsubscribe);
 </script>
 
-<div id="container">
+<div class="canvas__wrapper">
   <canvas id="canvas" width="500px" height="500px" />
+  {strokeColor}
 </div>
 
 <style>
-  #container {
+  .canvas__wrapper {
     width: 500px;
     border: 1px solid #000;
   }
